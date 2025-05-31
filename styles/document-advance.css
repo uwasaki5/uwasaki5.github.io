@@ -1,0 +1,48 @@
+@charset 'UTF-8';
+
+main span.item {
+    color: var(--color-black-secondary);
+}
+main span.item::after {
+    content: ':';
+}
+main span.tag {
+    color: var(--color-black-secondary);
+}
+main span.tag::before {
+    content: '[';
+}
+main span.tag::after {
+    content: ']';
+}
+main div.action {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+main div.action::after {
+    content: '';
+    z-index: -1;
+    position: absolute;
+    top: calc(50% * 1.25 - 1px);
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background-color: var(--color-black-secondary);
+}
+main div.action > * {
+    text-decoration: none;
+    color: var(--color-accent);
+    background-color: var(--color-white-primary);
+}
+main div.action > *::before,
+main div.action > *::after {
+    color: var(--color-black-secondary);
+}
+main div.action > *::before {
+    content: '[';
+}
+main div.action > *::after {
+    content: ']';
+}

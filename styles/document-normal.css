@@ -1,0 +1,55 @@
+@charset 'UTF-8';
+
+main h1,
+main h2,
+main h3 {
+    font-weight: bold;
+}
+main h1 {
+    font-size: 2rem;
+}
+main h2 {
+    font-size: 1.6667rem;
+}
+main h3 {
+    font-size: 1.3333rem;
+}
+main h1::before,
+main h2::before,
+main h3::before {
+    color: var(--color-black-secondary);
+}
+main h1::before {
+    content: '# ';
+}
+main h2::before {
+    content: '## ';
+}
+main h3::before {
+    content: '### ';
+}
+main hr {
+    border: unset;
+    border-bottom: solid 1px var(--color-black-secondary);
+}
+main ul {
+    list-style-type: '- ';
+    padding-left: 2.4rem;
+}
+main ol {
+    list-style-type: decimal;
+    padding-left: 2.4rem;
+}
+main li::marker {
+    font-weight: normal;
+    color: var(--color-black-secondary);
+}
+main img,
+main video {
+    display: block;
+    width: 100%;
+    max-width: var(--image-max-width);
+}
+main a {
+    color: var(--color-accent);
+}
