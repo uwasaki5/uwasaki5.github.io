@@ -46,3 +46,25 @@ main div.action > *::before {
 main div.action > *::after {
     content: ']';
 }
+main div.img_2_column {
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fill,
+        minmax(
+            calc(var(--image-max-width) / 2 - 0.25rem),
+            1fr
+        )
+    );
+    gap: 0.5rem;
+}
+main div.img_3_column {
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fill,
+        minmax(
+            calc(var(--image-max-width) / 3 - 0.25rem),
+            1fr
+        )
+    );
+    gap: 0.5rem;
+}
