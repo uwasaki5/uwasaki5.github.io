@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+
+<html lang="ja-JP">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <title>個人的Bash備忘録 | Uwasaki TSUDE's Official Website</title>
+        <link rel="stylesheet" href="../styles/general.css" />
+        <link rel="stylesheet" href="../styles/header.css" />
+        <link rel="stylesheet" href="../styles/document-normal.css" />
+        <link rel="stylesheet" href="../styles/document-advance.css" />
+    </head>
+    <body>
+        <header>
+            <a href="../index.html">
+                <img class="icon" src="../icon.svg" />
+                <div class="title">Uwasaki TSUDE's<br />Official Website</div>
+            </a>
+        </header>
+        <main>
+            <div class="action">
+                <a href="../index.html">Back to Home</a>
+            </div>
+
+            <h1>個人的Bash備忘録</h1>
+
+            <h2>一時保管ディレクトリーを挿入・除去</h2>
+
+            <p>揮発性メモリー上にディレクトリーを作成します。デバイスの耐久性の向上やファイルの機密性の保持に役立ちます。</p>
+
+            <div class="code head">~/bin/mount-cache</div>
+            <pre class="code body">
+#!/bin/bash
+
+CACHE_DIRECTORY="/home/${USER}/cache/"
+CACHE_SIZE="4096M"
+
+sudo mount -t tmpfs -o size="$CACHE_SIZE" tmpfs "$CACHE_DIRECTORY"
+</pre>
+
+            <div class="code head">~/bin/umount-cache</div>
+            <pre class="code body">
+#!/bin/bash
+
+CACHE_DIRECTORY="/home/${USER}/cache/"
+
+sudo umount "$CACHE_DIRECTORY"
+</pre>
+
+            <h2>ディレクトリーをバックアップ</h2>
+
+            <p>ディレクトリーをボリューム等へ複製（同期）します。例外ディレクトリーを指定することも可能です。</p>
+
+            <div class="code head">~/bin/backup-dir</div>
+            <pre class="code body">
+#!/bin/bash
+
+BACKUP_DIRECTORY_FROM="/home/${USER}/YOUR_DIRECTORY"
+BACKUP_DIRECTORY_TO="/run/media/${USER}/YOUR_VOLUME"
+EXCLUDE_LIST="/home/${USER}/backup-dir-ignore.txt"
+
+read -p "Are you sure you want to run \"${0##*/}\"? (Enter \"yes\" or anything else): " confirm
+
+if [ "$confirm" != "yes" ]; then
+    exit
+fi
+
+rsync -av --delete --exclude-from="$EXCLUDE_LIST" \
+    "$BACKUP_DIRECTORY_FROM" "$BACKUP_DIRECTORY_TO"
+</pre>
+
+            <div class="code head">~/bin/backup-dir-ignore.txt</div>
+            <pre class="code body">
+.git
+</pre>
+
+            <h2>ディレクトリーを抹消</h2>
+
+            <p>ディレクトリー内に存在する全てのファイルに対してshredコマンドを実行します。</p>
+
+            <div class="code head">~/bin/shred-dir</div>
+            <pre class="code body">
+#!/bin/bash
+
+if [ ! -d "$1" ]; then
+    target="."
+else
+    target="${1%/*}"
+fi
+
+find "${target}/" -type f -name "*" -print0 | \
+xargs -0i sudo shred -n 1 -uz "{}" && \
+sudo rm -rf "$target"/*
+</pre>
+
+            <h2>写真の名称を一括変更</h2>
+
+            <p>ディレクトリー内に存在する（EXIF情報が含まれる）ファイルの名称を撮影日時に変更します。ミリ秒単位で連続撮影された写真が存在する場合は名称が重複することに注意してください。</p>
+
+            <div class="code head">~/bin/rename-photo-files</div>
+            <pre class="code body">
+#!/bin/bash
+
+TARGET_FILE_REGEX=".*\.(jpg|JPG)"
+
+if [ ! -d "$1" ]; then
+    target="."
+else
+    target="${1%/*}"
+fi
+
+function renamePhotoFile {
+    targetFrom="$1"
+    targetTo="${targetFrom%/*}/$(identify -format "%[exif:DateTimeOriginal]" "$targetFrom" | sed -e "s/:/-/g" -e "s/ /_/g").jpg"
+
+    if [ "${targetTo##*/}" = ".jpg" ]; then
+        echo "${targetFrom}: Failed to get the shooting date."
+    else
+        mv --backup=t "$targetFrom" "$targetTo" && echo "Rename file ... ${targetFrom} -> ${targetTo##*/}"
+    fi
+}
+
+export -f renamePhotoFile
+
+find "$target" -type f -regextype posix-extended -regex "$TARGET_FILE_REGEX" -print0 | \
+xargs -0i bash -c "renamePhotoFile \"{}\""
+</pre>
+
+            <h2>履歴を抹消</h2>
+
+            <p>実行したコマンドや開いたファイルの履歴を恒久的に削除します。</p>
+
+            <div class="code head">~/bin/clean</div>
+            <pre class="code body">
+#!/bin/bash
+
+clear
+
+cat /dev/null > ~/.bash_history
+cat /dev/null > ~/.local/share/recently-used.xbel
+
+history -c
+</pre>
+
+            <h2>.bashrc</h2>
+
+            <p>ターミナル起動時に実行されるスクリプトです。私の場合は最低限のコマンドを実行しています。</p>
+
+            <div class="code head">~/.bashrc</div>
+            <pre class="code body">
+#!/bin/bash
+
+source ~/python/venv/bin/activate
+
+export PATH=$PATH:"~/bin"
+
+PS1='\u@\h \W \$ '
+</pre>
+
+            <h2>.setup</h2>
+
+            <p>私がEndeavourOSで頻繁に使用するソフトウェア（KDEの標準パッケージを除く）をインストールします。</p>
+
+            <div class="code head">~/.setup</div>
+            <pre class="code body">
+#!/bin/bash
+
+INSTALL_NVIDIA_DRIVERS=0
+INSTALL_ADVANCED_APPLICATIONS=0
+
+sudo pacman -Syyu
+
+sudo pacman -S --noconfirm vim
+sudo pacman -S --noconfirm neofetch
+sudo pacman -S --noconfirm gparted
+sudo pacman -S --noconfirm fcitx5-im fcitx5-mozc
+sudo pacman -S --noconfirm p7zip
+sudo pacman -S --noconfirm jdk-openjdk
+sudo pacman -S --noconfirm python-pip
+sudo pacman -S --noconfirm libreoffice-fresh libreoffice-fresh-ja
+sudo pacman -S --noconfirm gimp
+sudo pacman -S --noconfirm krita
+sudo pacman -S --noconfirm mypaint
+sudo pacman -S --noconfirm inkscape
+sudo pacman -S --noconfirm darktable
+sudo pacman -S --noconfirm blender
+sudo pacman -S --noconfirm kdenlive
+sudo pacman -S --noconfirm shotcut
+sudo pacman -S --noconfirm audacity
+sudo pacman -S --noconfirm lmms
+sudo pacman -S --noconfirm obs-studio
+
+if [ $INSTALL_NVIDIA_DRIVERS = 1 ]; then
+    sudo pacman -S --noconfirm nvidia nvidia-utils nvidia-settings
+
+    yay -S optimus-manager
+
+    # optimus-manager --switch nvidia
+fi
+
+if [ $INSTALL_ADVANCED_APPLICATIONS = 1 ]; then
+    sudo pacman -S --noconfirm discord
+
+    yay -S minecraft-launcher
+fi
+
+python -m venv ~/python/venv
+
+sudo rm -rf /var/cache/* /var/log/* /var/tmp/*
+sudo rm -rf /tmp/*
+</pre>
+
+            <div class="action">
+                <a href="../index.html">Back to Home</a>
+            </div>
+        </main>
+    </body>
+</html>

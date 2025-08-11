@@ -68,3 +68,24 @@ main div.img_3_column {
     );
     gap: 0.5rem;
 }
+main div.code,
+main pre.code {
+    padding: 0.25rem 0.5rem;
+    font-family: inherit;
+    white-space: pre-wrap;
+    color: var(--color-white-primary);
+    background-color: var(--color-black-primary);
+}
+main div.code.head {
+    margin-bottom: 1px;
+    font-weight: bold;
+    text-align: center;
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+    color: var(--color-accent);
+}
+main pre.code.body {
+    margin-top: 0;
+    border-bottom-left-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+}
